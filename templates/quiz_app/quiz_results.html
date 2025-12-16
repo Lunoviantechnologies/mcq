@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% load quiz_extras %}
+
+{% block title %}Quiz Results - {{ quiz.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .results-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    
+    .score-display {
+        font-size: 48px;
+        font-weight: bold;
+        margin: 20px 0;
+    }
+    
+    .question-result {
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .question-result.correct {
+        border-color: #28a745;
+        background: #d4edda;
+    }
+    
+    .question-result.incorrect {
+        border-color: #dc3545;
+        background: #f8d7da;
+    }
+    
+    .question-result.text-answer {
+        border-color: #ffc107;
+        background: #fff3cd;
+    }
+    
+    .question-label {
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #333;
+    }
+    
+    .answer-display {
+        margin: 10px 0;
+        padding: 10px;
+        background: white;
+        border-radius: 5px;
+    }
+    
+    .correct-answer {
+        color: #28a745;
+        font-weight: bold;
+    }
+    
+    .incorrect-answer {
+        color: #dc3545;
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: bold;
+        margin-left: 10px;
+    }
+    
+    .status-badge.correct {
+        background: #28a745;
+        color: white;
+    }
+    
+    .status-badge.incorrect {
+        background: #dc3545;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="results-header">
+    <h2>{{ quiz.title }}</h2>
+    <div class="score-display">{{ submission.score|floatformat:1 }}%</div>
+    <p>Submitted on: {{ submission.submitted_at|date:"F d, Y g:i A" }}</p>
+</div>
+
+<h3 style="margin-bottom: 20px; color: #333;">Your Answers</h3>
+
+{% for question in questions %}
+{% with answers_dict|get_item:question.id as answer %}
+<div class="question-result 
+    {% if question.question_type == 'multiple_choice' %}
+        {% if answer and answer.selected_choice %}
+            {% if answer.selected_choice.is_correct %}correct{% else %}incorrect{% endif %}
+        {% endif %}
+    {% else %}text-answer{% endif %}">
+    <div class="question-label">
+        Question {{ forloop.counter }}: {{ question.question_text }}
+        {% if question.question_type == 'multiple_choice' and answer and answer.selected_choice %}
+            {% if answer.selected_choice.is_correct %}
+                <span class="status-badge correct">✓ Correct</span>
+            {% else %}
+                <span class="status-badge incorrect">✗ Incorrect</span>
+            {% endif %}
+        {% endif %}
+    </div>
+    
+    {% if question.question_type == 'multiple_choice' %}
+        {% if answer %}
+            {% if answer.selected_choice %}
+                <div class="answer-display">
+                    <strong>Your Answer:</strong> 
+                    <span class="{% if answer.selected_choice.is_correct %}correct-answer{% else %}incorrect-answer{% endif %}">
+                        {{ answer.selected_choice.choice_text }}
+                    </span>
+                </div>
+                {% if not answer.selected_choice.is_correct %}
+                    <div class="answer-display">
+                        <strong>Correct Answer:</strong> 
+                        <span class="correct-answer">
+                            {% for choice in question.choices.all %}
+                                {% if choice.is_correct %}{{ choice.choice_text }}{% endif %}
+                            {% endfor %}
+                        </span>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="answer-display incorrect-answer">No answer provided</div>
+            {% endif %}
+        {% else %}
+            <div class="answer-display incorrect-answer">No answer provided</div>
+        {% endif %}
+    {% else %}
+        <div class="answer-display">
+            <strong>Your Answer:</strong> 
+            {% if answer %}
+                {{ answer.answer_text|default:"No answer provided" }}
+            {% else %}
+                <span class="incorrect-answer">No answer provided</span>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endwith %}
+{% endfor %}
+
+<div style="text-align: center; margin-top: 30px;">
+    <a href="{% url 'quiz_list' %}" class="btn">Back to Quizzes</a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add template filter for dictionary lookup (simplified version)
+    // In production, you'd want to add this as a custom template filter
+</script>
+{% endblock %}
+

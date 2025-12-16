@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Leaderboard - {{ quiz.title }}{% endblock %}
+
+{% block content %}
+<h2 style="color: #667eea; margin-bottom: 20px;">Leaderboard - {{ quiz.title }}</h2>
+<p style="color: #666; margin-bottom: 20px;">Top scores for this quiz.</p>
+
+{% if submissions %}
+<div style="overflow-x: auto;">
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="background: #f5f5f5; text-align: left;">
+                <th style="padding: 12px; border-bottom: 2px solid #e0e0e0;">Rank</th>
+                <th style="padding: 12px; border-bottom: 2px solid #e0e0e0;">Trainee</th>
+                <th style="padding: 12px; border-bottom: 2px solid #e0e0e0;">Score</th>
+                <th style="padding: 12px; border-bottom: 2px solid #e0e0e0;">Submitted At</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for submission in submissions %}
+            <tr style="border-bottom: 1px solid #e0e0e0;">
+                <td style="padding: 12px;">{{ forloop.counter }}</td>
+                <td style="padding: 12px;">{{ submission.trainee.username }}</td>
+                <td style="padding: 12px;">{{ submission.score|floatformat:1 }}%</td>
+                <td style="padding: 12px;">{{ submission.submitted_at|date:"M d, Y g:i A" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div style="padding: 20px; color: #666;">No submissions yet for this quiz.</div>
+{% endif %}
+
+<div style="margin-top: 20px;">
+    <a class="btn" href="{% url 'quiz_list' %}">Back to Quizzes</a>
+</div>
+{% endblock %}
+
