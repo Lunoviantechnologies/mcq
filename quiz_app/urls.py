@@ -13,5 +13,7 @@ urlpatterns = [
     path('quiz/<int:quiz_id>/submit/', views.submit_quiz_view, name='submit_quiz'),
     path('quiz/<int:quiz_id>/leaderboard/', views.leaderboard_view, name='quiz_leaderboard'),
     path('results/<int:submission_id>/', views.quiz_results_view, name='quiz_results'),
+    path('manage/users/', views.user_list_view, name='user_list'),
+    path('manage/users/<int:user_id>/delete/', views.delete_user_view, name='delete_user'),
 ]
 

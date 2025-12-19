@@ -181,6 +181,9 @@
         <div class="navbar-links">
             <span>Welcome, <strong>{{ user.username }}</strong></span>
             <a href="{% url 'quiz_list' %}">Quizzes</a>
+            {% if user.is_staff %}
+            <a href="{% url 'user_list' %}">Manage Users</a>
+            {% endif %}
             <a href="{% url 'logout' %}">Logout</a>
         </div>
     </div>

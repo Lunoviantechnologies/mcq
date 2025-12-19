@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Users - Quiz Application{% endblock %}
+
+{% block content %}
+<h2 style="color: #667eea; margin-bottom: 20px;">Manage Registered Users</h2>
+<p style="color: #666; margin-bottom: 20px;">Only staff/admin can access this page.</p>
+
+<div style="overflow-x: auto;">
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="background: #f5f5f5; text-align: left;">
+                <th style="padding: 12px; border-bottom: 2px solid #e0e0e0;">#</th>
+                <th style="padding: 12px; border-bottom: 2px solid #e0e0e0;">Username</th>
+                <th style="padding: 12px; border-bottom: 2px solid #e0e0e0;">Email</th>
+                <th style="padding: 12px; border-bottom: 2px solid #e0e0e0;">Role</th>
+                <th style="padding: 12px; border-bottom: 2px solid #e0e0e0;">Joined</th>
+                <th style="padding: 12px; border-bottom: 2px solid #e0e0e0;">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr style="border-bottom: 1px solid #e0e0e0;">
+                <td style="padding: 12px;">{{ forloop.counter }}</td>
+                <td style="padding: 12px;">{{ u.username }}</td>
+                <td style="padding: 12px;">{{ u.email|default:"-" }}</td>
+                <td style="padding: 12px;">
+                    {% if u.is_superuser %}
+                        Superuser
+                    {% elif u.is_staff %}
+                        Staff
+                    {% else %}
+                        Trainee
+                    {% endif %}
+                </td>
+                <td style="padding: 12px;">{{ u.date_joined|date:"M d, Y g:i A" }}</td>
+                <td style="padding: 12px;">
+                    {% if u.is_superuser %}
+                        <span style="color:#999;">Protected</span>
+                    {% elif u.id == user.id %}
+                        <span style="color:#999;">Current user</span>
+                    {% else %}
+                        <form method="post" action="{% url 'delete_user' u.id %}" onsubmit="return confirm('Delete user {{ u.username }}? This cannot be undone.');" style="display:inline;">
+                            {% csrf_token %}
+                            <button class="btn btn-secondary" type="submit" style="padding: 8px 14px;">Delete</button>
+                        </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+

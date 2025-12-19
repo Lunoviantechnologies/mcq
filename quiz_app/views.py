@@ -1,7 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
 from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
@@ -199,4 +201,31 @@ def leaderboard_view(request, quiz_id):
         'submissions': submissions,
     }
     return render(request, 'quiz_app/leaderboard.html', context)
+
+
+@staff_member_required
+def user_list_view(request):
+    """Admin/staff: list all registered users."""
+    users = User.objects.all().order_by('date_joined')
+    return render(request, 'quiz_app/user_list.html', {'users': users})
+
+
+@staff_member_required
+@require_http_methods(["POST"])
+def delete_user_view(request, user_id):
+    """Admin/staff: delete a user."""
+    user_to_delete = get_object_or_404(User, id=user_id)
+
+    # Safety checks
+    if user_to_delete.id == request.user.id:
+        messages.error(request, "You cannot delete your own account while logged in.")
+        return redirect('user_list')
+    if user_to_delete.is_superuser:
+        messages.error(request, "You cannot delete a superuser from here.")
+        return redirect('user_list')
+
+    username = user_to_delete.username
+    user_to_delete.delete()
+    messages.success(request, f"User '{username}' deleted successfully.")
+    return redirect('user_list')
 
