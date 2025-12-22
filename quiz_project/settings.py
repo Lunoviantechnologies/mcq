@@ -24,12 +24,20 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-quiz-project-key-ch
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env_bool("DJANGO_DEBUG", True)
 
+# ALLOWED_HOSTS configuration
 if DEBUG:
-    ALLOWED_HOSTS = []
+    # In development, allow localhost and local IP
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 else:
-    ALLOWED_HOSTS = [h.strip() for h in os.getenv("DJANGO_ALLOWED_HOSTS", "").split(",") if h.strip()]
+    # In production, use environment variable or default to empty list
+    allowed_hosts_str = os.getenv("DJANGO_ALLOWED_HOSTS", "")
+    if allowed_hosts_str:
+        ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_str.split(",") if h.strip()]
+    else:
+        ALLOWED_HOSTS = []
 
-# For HTTPS deployments, set this to: "https://your-domain.com,https://www.your-domain.com"
+# For HTTPS deployments, set this via environment variable
+# Example: DJANGO_CSRF_TRUSTED_ORIGINS=https://mcq.lunoviantechnologies.com
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()]
 
 
@@ -141,11 +149,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
-STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Basic production hardening (toggle via env vars)
 if not DEBUG:
