@@ -6,81 +6,160 @@
 {% block extra_css %}
 <style>
     .results-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
         color: white;
-        padding: 30px;
-        border-radius: 10px;
-        margin-bottom: 30px;
+        padding: 3rem;
+        border-radius: 16px;
+        margin-bottom: 2rem;
         text-align: center;
+        box-shadow: var(--shadow-xl);
+    }
+    
+    .results-header h2 {
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+        color: white;
     }
     
     .score-display {
-        font-size: 48px;
-        font-weight: bold;
-        margin: 20px 0;
+        font-size: 4rem;
+        font-weight: 700;
+        margin: 1.5rem 0;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+    
+    .results-header p {
+        opacity: 0.95;
+        font-size: 1rem;
+    }
+    
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--dark);
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid var(--gray-lighter);
     }
     
     .question-result {
-        border: 2px solid #e0e0e0;
-        border-radius: 10px;
-        padding: 20px;
-        margin-bottom: 20px;
+        border: 2px solid var(--gray-lighter);
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        background: var(--white);
+        transition: all 0.3s;
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .question-result:hover {
+        box-shadow: var(--shadow-md);
     }
     
     .question-result.correct {
-        border-color: #28a745;
-        background: #d4edda;
+        border-color: var(--success-color);
+        background: linear-gradient(90deg, rgba(16, 185, 129, 0.05), rgba(16, 185, 129, 0.02));
     }
     
     .question-result.incorrect {
-        border-color: #dc3545;
-        background: #f8d7da;
+        border-color: var(--danger-color);
+        background: linear-gradient(90deg, rgba(239, 68, 68, 0.05), rgba(239, 68, 68, 0.02));
     }
     
     .question-result.text-answer {
-        border-color: #ffc107;
-        background: #fff3cd;
+        border-color: var(--warning-color);
+        background: linear-gradient(90deg, rgba(245, 158, 11, 0.05), rgba(245, 158, 11, 0.02));
+    }
+    
+    .question-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        gap: 1rem;
     }
     
     .question-label {
-        font-weight: bold;
-        margin-bottom: 10px;
-        color: #333;
-    }
-    
-    .answer-display {
-        margin: 10px 0;
-        padding: 10px;
-        background: white;
-        border-radius: 5px;
-    }
-    
-    .correct-answer {
-        color: #28a745;
-        font-weight: bold;
-    }
-    
-    .incorrect-answer {
-        color: #dc3545;
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: var(--dark);
+        flex: 1;
+        line-height: 1.5;
     }
     
     .status-badge {
-        display: inline-block;
-        padding: 5px 15px;
-        border-radius: 20px;
-        font-size: 14px;
-        font-weight: bold;
-        margin-left: 10px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        white-space: nowrap;
     }
     
     .status-badge.correct {
-        background: #28a745;
+        background: var(--success-color);
         color: white;
+        box-shadow: var(--shadow-sm);
     }
     
     .status-badge.incorrect {
-        background: #dc3545;
+        background: var(--danger-color);
         color: white;
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .status-badge.text {
+        background: var(--warning-color);
+        color: white;
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .answer-section {
+        margin-top: 1rem;
+    }
+    
+    .answer-display {
+        margin: 0.75rem 0;
+        padding: 1rem 1.25rem;
+        background: var(--white);
+        border-radius: 10px;
+        border: 1px solid var(--gray-lighter);
+    }
+    
+    .answer-display strong {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--gray);
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .answer-text {
+        font-size: 1rem;
+        color: var(--dark);
+        line-height: 1.6;
+    }
+    
+    .correct-answer {
+        color: var(--success-color);
+        font-weight: 600;
+    }
+    
+    .incorrect-answer {
+        color: var(--danger-color);
+        font-weight: 500;
+    }
+    
+    .actions-section {
+        text-align: center;
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 2px solid var(--gray-lighter);
     }
 </style>
 {% endblock %}
@@ -92,7 +171,7 @@
     <p>Submitted on: {{ submission.submitted_at|date:"F d, Y g:i A" }}</p>
 </div>
 
-<h3 style="margin-bottom: 20px; color: #333;">Your Answers</h3>
+<h3 class="section-title">Your Answers Review</h3>
 
 {% for question in questions %}
 {% with answers_dict|get_item:question.id as answer %}
@@ -102,65 +181,69 @@
             {% if answer.selected_choice.is_correct %}correct{% else %}incorrect{% endif %}
         {% endif %}
     {% else %}text-answer{% endif %}">
-    <div class="question-label">
-        Question {{ forloop.counter }}: {{ question.question_text }}
+    <div class="question-header">
+        <div class="question-label">
+            <strong>Question {{ forloop.counter }}:</strong> {{ question.question_text }}
+        </div>
         {% if question.question_type == 'multiple_choice' and answer and answer.selected_choice %}
             {% if answer.selected_choice.is_correct %}
                 <span class="status-badge correct">✓ Correct</span>
             {% else %}
                 <span class="status-badge incorrect">✗ Incorrect</span>
             {% endif %}
+        {% elif question.question_type == 'text' %}
+            <span class="status-badge text">📝 Text Answer</span>
         {% endif %}
     </div>
     
-    {% if question.question_type == 'multiple_choice' %}
-        {% if answer %}
-            {% if answer.selected_choice %}
-                <div class="answer-display">
-                    <strong>Your Answer:</strong> 
-                    <span class="{% if answer.selected_choice.is_correct %}correct-answer{% else %}incorrect-answer{% endif %}">
-                        {{ answer.selected_choice.choice_text }}
-                    </span>
-                </div>
-                {% if not answer.selected_choice.is_correct %}
+    <div class="answer-section">
+        {% if question.question_type == 'multiple_choice' %}
+            {% if answer %}
+                {% if answer.selected_choice %}
                     <div class="answer-display">
-                        <strong>Correct Answer:</strong> 
-                        <span class="correct-answer">
-                            {% for choice in question.choices.all %}
-                                {% if choice.is_correct %}{{ choice.choice_text }}{% endif %}
-                            {% endfor %}
-                        </span>
+                        <strong>Your Answer:</strong>
+                        <div class="answer-text {% if answer.selected_choice.is_correct %}correct-answer{% else %}incorrect-answer{% endif %}">
+                            {{ answer.selected_choice.choice_text }}
+                        </div>
+                    </div>
+                    {% if not answer.selected_choice.is_correct %}
+                        <div class="answer-display">
+                            <strong>Correct Answer:</strong>
+                            <div class="answer-text correct-answer">
+                                {% for choice in question.choices.all %}
+                                    {% if choice.is_correct %}{{ choice.choice_text }}{% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="answer-display">
+                        <div class="answer-text incorrect-answer">No answer provided</div>
                     </div>
                 {% endif %}
             {% else %}
-                <div class="answer-display incorrect-answer">No answer provided</div>
+                <div class="answer-display">
+                    <div class="answer-text incorrect-answer">No answer provided</div>
+                </div>
             {% endif %}
         {% else %}
-            <div class="answer-display incorrect-answer">No answer provided</div>
+            <div class="answer-display">
+                <strong>Your Answer:</strong>
+                <div class="answer-text">
+                    {% if answer and answer.answer_text %}
+                        {{ answer.answer_text }}
+                    {% else %}
+                        <span class="incorrect-answer">No answer provided</span>
+                    {% endif %}
+                </div>
+            </div>
         {% endif %}
-    {% else %}
-        <div class="answer-display">
-            <strong>Your Answer:</strong> 
-            {% if answer %}
-                {{ answer.answer_text|default:"No answer provided" }}
-            {% else %}
-                <span class="incorrect-answer">No answer provided</span>
-            {% endif %}
-        </div>
-    {% endif %}
+    </div>
 </div>
 {% endwith %}
 {% endfor %}
 
-<div style="text-align: center; margin-top: 30px;">
-    <a href="{% url 'quiz_list' %}" class="btn">Back to Quizzes</a>
+<div class="actions-section">
+    <a href="{% url 'quiz_list' %}" class="btn btn-lg">Back to Quizzes</a>
 </div>
 {% endblock %}
-
-{% block extra_js %}
-<script>
-    // Add template filter for dictionary lookup (simplified version)
-    // In production, you'd want to add this as a custom template filter
-</script>
-{% endblock %}
-
