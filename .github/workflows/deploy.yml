@@ -1,30 +1,45 @@
-name: Deploy to EC2
+name: Deploy Django to EC2
 
 on:
   push:
     branches:
-      - main   # Deploy only when pushing to main
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-    - name: Copy files to EC2 via SSH
-      uses: appleboy/ssh-action@v1.0.0
-      with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ${{ secrets.EC2_USERNAME }}
-        key: ${{ secrets.EC2_SSH_KEY }}
-        script: |
-          cd /home/ubuntu/projects/mcq
-          git pull
-          source venv/bin/activate
-          pip install -r requirements.txt
-          python manage.py migrate --noinput
-          python manage.py collectstatic --noinput
-          sudo systemctl restart gunicorn_mcq
-          sudo systemctl reload nginx
+      - name: Copy files to EC2 & Deploy
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/projects/mcq
+
+            echo ">>> Pulling latest code"
+            git reset --hard
+            git pull origin main
+
+            echo ">>> Activating virtual environment"
+            source venv/bin/activate
+
+            echo ">>> Installing dependencies"
+            pip install -r requirements.txt
+
+            echo ">>> Running migrations"
+            python manage.py migrate --noinput
+
+            echo ">>> Collecting static"
+            python manage.py collectstatic --noinput
+
+            echo ">>> Restarting services"
+            sudo systemctl restart gunicorn_mcq
+            sudo systemctl reload nginx
+
+            echo ">>> Deployment Completed Successfully"
