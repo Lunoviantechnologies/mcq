@@ -2,28 +2,83 @@
 
 {% block title %}Login - Quiz Application{% endblock %}
 
-{% block content %}
-<div style="max-width: 400px; margin: 50px auto;">
-    <h2 style="text-align: center; color: #667eea; margin-bottom: 30px;">Login to Quiz Application</h2>
+{% block extra_css %}
+<style>
+    .auth-container {
+        max-width: 450px;
+        margin: 3rem auto;
+    }
     
-    <form method="post">
-        {% csrf_token %}
-        <div class="form-group">
-            <label for="username">Username</label>
-            <input type="text" id="username" name="username" required autofocus>
-        </div>
-        
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" required>
-        </div>
-        
-        <button type="submit" class="btn" style="width: 100%;">Login</button>
-    </form>
+    .auth-card {
+        background: var(--white);
+        padding: 3rem;
+        border-radius: 16px;
+        box-shadow: var(--shadow-xl);
+    }
     
-    <p style="text-align: center; margin-top: 20px; color: #666;">
-        Don't have an account? <a href="{% url 'register' %}" style="color: #667eea;">Register here</a>
-    </p>
-</div>
+    .auth-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+    
+    .auth-header h2 {
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+        font-size: 2rem;
+    }
+    
+    .auth-header p {
+        color: var(--gray);
+        font-size: 0.95rem;
+    }
+    
+    .auth-link {
+        text-align: center;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--gray-lighter);
+        color: var(--gray);
+        font-size: 0.95rem;
+    }
+    
+    .auth-link a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 600;
+    }
+    
+    .auth-link a:hover {
+        text-decoration: underline;
+    }
+</style>
 {% endblock %}
 
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h2>Welcome Back</h2>
+            <p>Sign in to continue to Quiz Platform</p>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required autofocus placeholder="Enter your username">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required placeholder="Enter your password">
+            </div>
+            
+            <button type="submit" class="btn btn-block btn-lg">Sign In</button>
+        </form>
+        
+        <div class="auth-link">
+            Don't have an account? <a href="{% url 'register' %}">Register here</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
