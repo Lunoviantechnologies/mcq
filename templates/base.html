@@ -179,7 +179,7 @@
     <div class="navbar">
         <h1>📝 Quiz Application</h1>
         <div class="navbar-links">
-            <span>Welcome, <strong>{{ user.username }}</strong></span>
+            <span>Hello..!, <strong>{{ user.username }}</strong></span>
             <a href="{% url 'quiz_list' %}">Quizzes</a>
             {% if user.is_staff %}
             <a href="{% url 'user_list' %}">Manage Users</a>
