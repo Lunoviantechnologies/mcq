@@ -1,0 +1,68 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static admin_modify %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+    &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+    &rsaquo; <a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+    &rsaquo; {% trans 'Upload Excel' %}
+</div>
+{% endblock %}
+
+{% block content %}
+<h1>Upload Excel File to Import Quizzes</h1>
+
+<div style="margin: 20px 0; padding: 20px; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px;">
+    <h2>Instructions:</h2>
+    <ol>
+        <li><strong>Download the template first:</strong> Click the "Download Template" button below to get the Excel template with instructions.</li>
+        <li><strong>Fill in your data:</strong> Add your quizzes, questions, and choices to the template.</li>
+        <li><strong>Upload the file:</strong> Use the form below to upload your filled Excel file.</li>
+    </ol>
+    
+    <div style="margin-top: 20px;">
+        <a href="{% url 'admin:quiz_download_template' %}" class="button" style="padding: 10px 20px; background-color: #417690; color: white; text-decoration: none; border-radius: 4px; display: inline-block;">
+            📥 Download Excel Template
+        </a>
+    </div>
+</div>
+
+<form method="post" enctype="multipart/form-data" style="margin-top: 30px;">
+    {% csrf_token %}
+    
+    <fieldset class="module aligned">
+        <div class="form-row">
+            <div>
+                <label for="id_excel_file" style="font-weight: bold; display: block; margin-bottom: 8px;">
+                    Select Excel File (.xlsx or .xls):
+                </label>
+                <input type="file" name="excel_file" id="id_excel_file" accept=".xlsx,.xls" required style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; width: 100%; max-width: 400px;">
+                <p class="help" style="margin-top: 5px; color: #666;">
+                    Supported formats: .xlsx, .xls
+                </p>
+            </div>
+        </div>
+    </fieldset>
+    
+    <div class="submit-row" style="margin-top: 20px;">
+        <input type="submit" value="Upload and Import" class="default" style="padding: 10px 20px; background-color: #417690; color: white; border: none; border-radius: 4px; cursor: pointer;">
+        <a href="{% url opts|admin_urlname:'changelist' %}" class="button" style="padding: 10px 20px; background-color: #ba2121; color: white; text-decoration: none; border-radius: 4px; margin-left: 10px;">
+            Cancel
+        </a>
+    </div>
+</form>
+
+<div style="margin-top: 30px; padding: 15px; background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 4px;">
+    <h3 style="margin-top: 0;">📋 Excel File Format:</h3>
+    <ul>
+        <li><strong>Quizzes Sheet:</strong> Quiz Title (required), Description, Created By, Is Active</li>
+        <li><strong>Questions Sheet:</strong> Quiz Title, Question Text, Question Type, Order, Time Limit</li>
+        <li><strong>Choices Sheet:</strong> Quiz Title, Question Text, Choice Text, Is Correct (for Multiple Choice only)</li>
+    </ul>
+    <p><strong>Note:</strong> Quiz Titles must match exactly across all sheets!</p>
+</div>
+{% endblock %}
+
