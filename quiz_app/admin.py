@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import Quiz, Question, Choice, QuizSubmission, Answer
 #this is the admin.py file for the quiz app
+#shubham gupta
 
 
 
