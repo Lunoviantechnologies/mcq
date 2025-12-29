@@ -1,4 +1,4 @@
-name: Deploy Django to EC2
+name: Deploy Django to EC2 Production
 
 on:
   push:
