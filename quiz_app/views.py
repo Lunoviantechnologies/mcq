@@ -2,26 +2,46 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.utils import timezone
-from .models import Quiz, Question, Choice, QuizSubmission, Answer
+from .models import Quiz, Question, Choice, QuizSubmission, Answer, UserProfile
+from .forms import UserRegistrationForm
+
+
+def check_quiz_category_access(user, quiz):
+    """Check if user has access to the quiz's category"""
+    if not quiz.category:
+        # If quiz has no category, allow access (for backward compatibility)
+        return True
+    
+    try:
+        user_profile = user.profile
+        registered_categories = user_profile.registered_categories.all()
+        return quiz.category in registered_categories
+    except UserProfile.DoesNotExist:
+        # If user has no profile, they have no registered categories
+        return False
 
 
 def register_view(request):
-    """User registration view"""
+    """User registration view with category selection"""
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = UserRegistrationForm(request.POST)
         if form.is_valid():
             user = form.save()
             username = form.cleaned_data.get('username')
-            messages.success(request, f'Account created for {username}! You can now log in.')
+            categories = form.cleaned_data.get('categories')
+            category_names = ', '.join([cat.name for cat in categories])
+            messages.success(
+                request, 
+                f'Account created for {username}! Registered categories: {category_names}. You can now log in.'
+            )
             return redirect('login')
     else:
-        form = UserCreationForm()
+        form = UserRegistrationForm()
     return render(request, 'quiz_app/register.html', {'form': form})
 
 
@@ -45,8 +65,30 @@ def login_view(request):
 
 @login_required
 def quiz_list_view(request):
-    """Display list of available quizzes"""
-    quizzes = Quiz.objects.filter(is_active=True).prefetch_related('submissions', 'questions')
+    """Display list of available quizzes filtered by user's registered categories"""
+    # Get user's registered categories
+    try:
+        user_profile = request.user.profile
+        registered_categories = user_profile.registered_categories.all()
+    except UserProfile.DoesNotExist:
+        # Create profile if it doesn't exist (for existing users)
+        user_profile = UserProfile.objects.create(user=request.user)
+        registered_categories = user_profile.registered_categories.all()
+    
+    # Filter quizzes by user's registered categories
+    if registered_categories.exists():
+        quizzes = Quiz.objects.filter(
+            is_active=True,
+            category__in=registered_categories
+        ).prefetch_related('submissions', 'questions', 'category')
+    else:
+        # If user has no registered categories, show no quizzes
+        quizzes = Quiz.objects.none()
+        messages.info(
+            request, 
+            'You have not registered for any categories. Please contact an administrator to register for categories.'
+        )
+    
     user_submissions = QuizSubmission.objects.filter(trainee=request.user, is_completed=True).select_related('quiz')
     submitted_quiz_ids = user_submissions.values_list('quiz_id', flat=True)
     
@@ -57,6 +99,7 @@ def quiz_list_view(request):
         'quizzes': quizzes,
         'submitted_quiz_ids': list(submitted_quiz_ids),
         'submission_map': submission_map,
+        'registered_categories': registered_categories,
     }
     return render(request, 'quiz_app/quiz_list.html', context)
 
@@ -65,6 +108,11 @@ def quiz_list_view(request):
 def start_quiz_view(request, quiz_id):
     """Start a quiz - create submission if doesn't exist"""
     quiz = get_object_or_404(Quiz, id=quiz_id, is_active=True)
+    
+    # Check if user has access to this quiz's category
+    if not check_quiz_category_access(request.user, quiz):
+        messages.error(request, 'You do not have access to quizzes in this category.')
+        return redirect('quiz_list')
     
     # Check if user already has a submission
     submission, created = QuizSubmission.objects.get_or_create(
@@ -84,6 +132,12 @@ def start_quiz_view(request, quiz_id):
 def take_quiz_view(request, quiz_id):
     """Display quiz questions for taking"""
     quiz = get_object_or_404(Quiz, id=quiz_id, is_active=True)
+    
+    # Check if user has access to this quiz's category
+    if not check_quiz_category_access(request.user, quiz):
+        messages.error(request, 'You do not have access to quizzes in this category.')
+        return redirect('quiz_list')
+    
     submission = get_object_or_404(QuizSubmission, quiz=quiz, trainee=request.user)
     
     if submission.is_completed:
@@ -110,6 +164,11 @@ def take_quiz_view(request, quiz_id):
 def submit_answer_view(request, quiz_id):
     """Save an answer for a question"""
     quiz = get_object_or_404(Quiz, id=quiz_id)
+    
+    # Check if user has access to this quiz's category
+    if not check_quiz_category_access(request.user, quiz):
+        return JsonResponse({'error': 'You do not have access to quizzes in this category.'}, status=403)
+    
     submission = get_object_or_404(QuizSubmission, quiz=quiz, trainee=request.user)
     
     if submission.is_completed:
@@ -143,6 +202,12 @@ def submit_answer_view(request, quiz_id):
 def submit_quiz_view(request, quiz_id):
     """Submit the entire quiz"""
     quiz = get_object_or_404(Quiz, id=quiz_id)
+    
+    # Check if user has access to this quiz's category
+    if not check_quiz_category_access(request.user, quiz):
+        messages.error(request, 'You do not have access to quizzes in this category.')
+        return redirect('quiz_list')
+    
     submission = get_object_or_404(QuizSubmission, quiz=quiz, trainee=request.user)
     
     if submission.is_completed:
@@ -173,6 +238,12 @@ def quiz_results_view(request, submission_id):
     """Display quiz results"""
     submission = get_object_or_404(QuizSubmission, id=submission_id, trainee=request.user)
     quiz = submission.quiz
+    
+    # Check if user has access to this quiz's category
+    if not check_quiz_category_access(request.user, quiz):
+        messages.error(request, 'You do not have access to quizzes in this category.')
+        return redirect('quiz_list')
+    
     answers = submission.answers.select_related('question', 'selected_choice').all()
     
     # Create a dictionary for easy lookup
@@ -191,6 +262,12 @@ def quiz_results_view(request, submission_id):
 def leaderboard_view(request, quiz_id):
     """Display leaderboard for a quiz"""
     quiz = get_object_or_404(Quiz, id=quiz_id)
+    
+    # Check if user has access to this quiz's category
+    if not check_quiz_category_access(request.user, quiz):
+        messages.error(request, 'You do not have access to quizzes in this category.')
+        return redirect('quiz_list')
+    
     submissions = (
         QuizSubmission.objects.filter(quiz=quiz, is_completed=True, score__isnull=False)
         .select_related('trainee')
