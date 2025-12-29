@@ -20,6 +20,8 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            set -e  # Exit on any error
+            
             cd /home/ubuntu/projects/mcq
 
             echo ">>> Pulling latest code"
@@ -32,14 +34,38 @@ jobs:
             echo ">>> Installing dependencies"
             pip install -r requirements.txt
 
+            echo ">>> Checking Django configuration"
+            python manage.py check --deploy || echo "Warning: Deployment checks failed"
+
             echo ">>> Running migrations"
-            python manage.py migrate --noinput
+            python manage.py migrate --noinput || {
+              echo "ERROR: Migrations failed!"
+              exit 1
+            }
 
-            echo ">>> Collecting static"
-            python manage.py collectstatic --noinput
+            echo ">>> Collecting static files"
+            python manage.py collectstatic --noinput || {
+              echo "ERROR: Static files collection failed!"
+              exit 1
+            }
 
-            echo ">>> Restarting services"
-            sudo systemctl restart gunicorn_mcq
-            sudo systemctl reload nginx
+            echo ">>> Restarting gunicorn service"
+            sudo systemctl restart gunicorn_mcq || {
+              echo "ERROR: Failed to restart gunicorn!"
+              exit 1
+            }
+
+            echo ">>> Checking gunicorn status"
+            sleep 2
+            sudo systemctl status gunicorn_mcq --no-pager || {
+              echo "ERROR: Gunicorn service is not running!"
+              exit 1
+            }
+
+            echo ">>> Reloading nginx"
+            sudo systemctl reload nginx || {
+              echo "ERROR: Failed to reload nginx!"
+              exit 1
+            }
 
             echo ">>> Deployment Completed Successfully"
