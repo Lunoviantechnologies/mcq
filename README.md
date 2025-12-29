@@ -5,6 +5,7 @@ A Google Forms-like quiz application built with Django, allowing trainees to reg
 ## Features
 
 - **User Authentication**: Registration and login system for trainees
+- **Category-Based Filtering**: Users register for specific categories (Java, Python, DevOps, Power BI) and only see quizzes from their registered categories
 - **Quiz Management**: Create and manage quizzes with multiple question types
 - **Question Types**: 
   - Multiple choice questions
@@ -13,6 +14,7 @@ A Google Forms-like quiz application built with Django, allowing trainees to reg
 - **Progress Tracking**: Visual progress bar showing completion status
 - **Results View**: Detailed results page showing scores and correct/incorrect answers
 - **Modern UI**: Beautiful, responsive interface with gradient backgrounds
+- **Excel Import/Export**: Bulk import and export quizzes via Excel files
 
 ## Prerequisites
 
@@ -102,9 +104,9 @@ The application will be available at:
 
 ### For Trainees
 
-1. **Register**: Create a new account at `/register/`
+1. **Register**: Create a new account at `/register/` and select one or more categories (Java, Python, DevOps, Power BI)
 2. **Login**: Log in at `/login/`
-3. **View Quizzes**: See all available quizzes on the home page
+3. **View Quizzes**: See all available quizzes from your registered categories on the home page
 4. **Start Quiz**: Click "Start Quiz" on any available quiz
 5. **Answer Questions**: 
    - Select answers for multiple choice questions
@@ -134,9 +136,9 @@ The application will be available at:
    - Check "Is correct" for the correct answer
    - Repeat for all choices
 
-### Creating Sample Data
+### Creating Sample Quizzes
 
-You can create sample data using Django Admin or Django Shell:
+You can create quizzes using Django Admin or Django Shell:
 
 **Using Django Shell:**
 ```bash
@@ -204,7 +206,9 @@ quiz_project/
 
 ## Database Models
 
-- **Quiz**: Represents a quiz with title, description, and creator
+- **Category**: MCQ categories (Java, Python, DevOps, Power BI)
+- **UserProfile**: User profile with registered categories
+- **Quiz**: Represents a quiz with title, description, category, and creator
 - **Question**: Questions within a quiz (multiple choice or text)
 - **Choice**: Answer choices for multiple choice questions
 - **QuizSubmission**: Tracks when a trainee starts/completes a quiz
@@ -227,6 +231,7 @@ quiz_project/
 - CSRF protection enabled
 - Password validation on registration
 - User authentication required for quiz access
+- Category-based access control - users can only access quizzes from their registered categories
 - Users can only view their own quiz results
 - SQL injection protection (Django ORM)
 - XSS protection (Django template auto-escaping)
@@ -306,7 +311,6 @@ For deployment instructions on AWS EC2 with RDS MySQL, see `DEPLOY_AWS_EC2_RDS_M
 - Quiz analytics dashboard
 - Image support in questions
 - Drag-and-drop question ordering
-- Quiz categories/tags
 - Bulk question import
 
 ## License

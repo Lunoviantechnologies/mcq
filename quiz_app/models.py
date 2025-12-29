@@ -1,11 +1,28 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+
+class Category(models.Model):
+    """MCQ Categories such as Java, Python, DevOps, Power BI"""
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name_plural = "Categories"
+        ordering = ['name']
+    
+    def __str__(self):
+        return self.name
 
 
 class Quiz(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='quizzes', null=True, blank=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_quizzes')
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
@@ -15,6 +32,35 @@ class Quiz(models.Model):
     
     def __str__(self):
         return self.title
+
+
+class UserProfile(models.Model):
+    """User profile to track category registrations"""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    registered_categories = models.ManyToManyField(Category, related_name='registered_users', blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.user.username}'s Profile"
+    
+    def get_registered_category_names(self):
+        """Return list of registered category names"""
+        return list(self.registered_categories.values_list('name', flat=True))
+
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    """Create UserProfile automatically when a User is created"""
+    if created:
+        UserProfile.objects.create(user=instance)
+
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    """Save UserProfile when User is saved"""
+    if hasattr(instance, 'profile'):
+        instance.profile.save()
 
 
 class Question(models.Model):

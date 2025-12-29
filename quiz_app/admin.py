@@ -3,15 +3,36 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.urls import path
 from django.http import HttpResponse
-from .models import Quiz, Question, Choice, QuizSubmission, Answer
+from .models import Quiz, Question, Choice, QuizSubmission, Answer, Category, UserProfile
 from .excel_utils import export_quizzes_to_excel, create_excel_template, import_quizzes_from_excel
+
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ['name', 'description', 'created_at']
+    search_fields = ['name', 'description']
+    list_filter = ['created_at']
+
+
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ['user', 'get_registered_categories', 'created_at', 'updated_at']
+    list_filter = ['created_at', 'updated_at']
+    search_fields = ['user__username', 'user__email']
+    filter_horizontal = ['registered_categories']
+    
+    def get_registered_categories(self, obj):
+        """Display registered categories as comma-separated list"""
+        return ', '.join(obj.registered_categories.values_list('name', flat=True))
+    get_registered_categories.short_description = 'Registered Categories'
 
 
 @admin.register(Quiz)
 class QuizAdmin(admin.ModelAdmin):
-    list_display = ['title', 'created_by', 'created_at', 'is_active']
-    list_filter = ['is_active', 'created_at']
+    list_display = ['title', 'category', 'created_by', 'created_at', 'is_active']
+    list_filter = ['is_active', 'created_at', 'category']
     search_fields = ['title', 'description']
+    filter_horizontal = []
     actions = ['export_selected_quizzes']
     
     def get_urls(self):
