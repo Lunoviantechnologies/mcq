@@ -135,6 +135,17 @@
         color: var(--gray);
     }
     
+    .quiz-category-badge {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        white-space: nowrap;
+        margin-left: 0.5rem;
+    }
+    
     @media (max-width: 768px) {
         .quizzes-grid {
             grid-template-columns: 1fr;
@@ -155,6 +166,11 @@
 {% block content %}
 <div class="page-header">
     <h2>Available Quizzes</h2>
+    {% if registered_categories %}
+    <div style="font-size: 0.9rem; color: var(--gray);">
+        Registered: {% for cat in registered_categories %}{{ cat.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+    </div>
+    {% endif %}
 </div>
 
 {% if quizzes %}
@@ -162,7 +178,10 @@
     {% for quiz in quizzes %}
     <div class="quiz-card">
         <div class="quiz-card-header">
-            <h3 class="quiz-card-title">{{ quiz.title }}</h3>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                <h3 class="quiz-card-title" style="flex: 1;">{{ quiz.title }}</h3>
+                <span class="quiz-category-badge">{{ quiz.category.name }}</span>
+            </div>
             {% if quiz.description %}
             <p class="quiz-card-description">{{ quiz.description }}</p>
             {% endif %}

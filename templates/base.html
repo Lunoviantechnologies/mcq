@@ -406,12 +406,12 @@
                 <div class="navbar-user">
                     Hello, <strong>{{ user.username }}</strong>
                 </div>
-                <div class="navbar-links">
-                    <a href="{% url 'quiz_list' %}">Quizzes</a>
-                    {% if user.is_staff %}
+        <div class="navbar-links">
+            <a href="{% url 'quiz_list' %}">Quizzes</a>
+            {% if user.is_staff %}
                     <a href="{% url 'user_list' %}">Users</a>
                     <a href="/admin/" target="_blank">Admin</a>
-                    {% endif %}
+            {% endif %}
                     <a href="{% url 'logout' %}" class="logout">Logout</a>
                 </div>
             </div>
